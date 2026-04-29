@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "wolfssl_rust_test",
+  "project_id": "fbd32403-713e-4ef6-8312-62a0ab80a515"
+}
