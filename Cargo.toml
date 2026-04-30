@@ -1,0 +1,51 @@
+[package]
+name = "wolfssl-rust-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[test]]
+name = "test_cipher"
+path = "tests/test_cipher.rs"
+
+[[test]]
+name = "test_aead"
+path = "tests/test_aead.rs"
+
+[[test]]
+name = "test_digest"
+path = "tests/test_digest.rs"
+
+[[test]]
+name = "test_mac"
+path = "tests/test_mac.rs"
+
+[[test]]
+name = "test_signature"
+path = "tests/test_signature.rs"
+
+[[test]]
+name = "test_kem"
+path = "tests/test_kem.rs"
+
+[[test]]
+name = "test_pbkdf2"
+path = "tests/test_pbkdf2.rs"
+
+[[test]]
+name = "test_rand_core"
+path = "tests/test_rand_core.rs"
+
+[[test]]
+name = "test_api_gaps"
+path = "tests/test_api_gaps.rs"
+
+[dependencies]
+wolfssl-wolfcrypt = { path = "../wolfssl/wrapper/rust/wolfssl-wolfcrypt", features = ["rand_core", "aead", "cipher"] }
+hex = "0.4"
+serde_json = "1"
+
+[dev-dependencies]
+aead = { version = "0.5", features = ["dev"] }
+cipher = "0.5"
+rand_core = "0.10"

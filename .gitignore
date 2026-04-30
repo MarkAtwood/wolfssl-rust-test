@@ -3,3 +3,7 @@
 .dolt/
 *.db
 .beads-credential-key
+
+/external/
+/target/
+/audit/vector_commits.txt
