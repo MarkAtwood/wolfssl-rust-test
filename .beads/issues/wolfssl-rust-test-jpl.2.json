@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.2",
+  "title": "test_digest.rs: SHA/SHA3/SHAKE via digest::Digest (PR #10248)",
+  "description": "Write tests/test_digest.rs: test digest::Digest impls for all SHA variants against NIST KAT vectors.\n\n## What\nVerify that the sha_digest.rs trait impls (PR #10248) call the right wolfCrypt hash function and produce byte-exact NIST output.\n\n## Algorithm\n1. use wolfssl_wolfcrypt::{sha::{SHA, SHA224, SHA256, SHA384, SHA512, SHA3_224, SHA3_256, SHA3_384, SHA3_512}, sha_digest::*} (names TBD once PR #10248 is present)\n2. Load vectors from testvectors/nist/sha_inline.rs (compiled-in constants).\n3. For each (input, expected_output) pair in each algorithm's table:\n   a. let mut h = SHAxxx::new();   // digest::Digest\n   b. Digest::update(&mut h, input);\n   c. let result = Digest::finalize(h);\n   d. assert_eq!(result.as_slice(), expected_output, 'SHA-xxx vector N failed');\n4. Multi-update test: split input at midpoint, call update twice, assert same output.\n5. Reset test: update \u2192 reset \u2192 update \u2192 finalize; result must equal single-update result.\n6. SHAKE128/SHAKE256 (XOF): use ExtendableOutput::finalize_xof, read output_len bytes, assert_eq.\n7. Compile-time trait bound check: fn _check<H: digest::Digest>() {} called for each type (proves trait is implemented, not just inherent methods).\n\n## Defensive rules\n- Call common::init_wolfcrypt() at top of each test function (idempotent)\n- Never call sha_digest functions via the wolfcrypt C FFI directly in tests \u2014 always go through the digest::Digest trait (this ensures we test the trait path, not the raw C path)\n- If PR #10248 is not present, tests will fail to compile; this is expected and documents the gap\n\n## Agent team\n- Agent R: confirm exact type names in sha_digest.rs by reading PR #10248 diff; note exact feature flag needed to enable digest trait impls\n- Agent I: write test_digest.rs per algorithm above\n- Agent T: independently derive the same NIST SHA-256 test vector from FIPS 180-4 Appendix B.1; confirm it matches the inline constant\n\n## Tests (oracles)\n- SHA-256 of empty string: oracle = FIPS 180-4 Appendix B.1 = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n- SHA-256 of 'abc': oracle = FIPS 180-4 Appendix B.1 = ba7816bf8f01cfea414140de5dae2ec73b00361bbef0469421a80d7c7cc09f6b  \n- SHA3-256 of empty: oracle = FIPS 202 example\n- SHAKE128 output (16 bytes of empty input): oracle = FIPS 202 example",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:02Z",
+  "updated_at": "2026-04-30T00:54:12Z",
+  "closed_at": "2026-04-30T00:54:12Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:01Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:58:57Z"
+    }
+  ]
+}

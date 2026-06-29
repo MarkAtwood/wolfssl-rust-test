@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.4",
+  "title": "test_aead.rs: AES-GCM/CCM, ChaCha20-Poly1305, XChaCha20-Poly1305 via aead traits",
+  "description": "Write tests/test_aead.rs: test aead::AeadInPlace impls for AES-128/256-GCM, AES-128/256-CCM, ChaCha20-Poly1305, XChaCha20-Poly1305 against Wycheproof JSON.\n\n## What\nVerify AEAD wrappers correctly seal/open and reject tampered ciphertexts using all Wycheproof valid+invalid test cases.\n\n## Algorithm\n1. For each algorithm, call common::load_wycheproof_json(path) for:\n   - external/wycheproof/testvectors_v1/aes_gcm_test.json\n   - external/wycheproof/testvectors_v1/aes_ccm_test.json\n   - external/wycheproof/testvectors_v1/chacha20_poly1305_test.json\n   - external/wycheproof/testvectors_v1/xchacha20_poly1305_test.json\n2. For each test group in JSON: filter by tagSize==128 (16 bytes). For GCM/CCM filter key_size 128 and 256.\n3. For valid cases (result=='valid'):\n   a. use aead::KeyInit; let cipher = Aes128Gcm::new_from_slice(key).unwrap();\n   b. let mut buf = pt.to_vec(); let tag = cipher.encrypt_in_place_detached(nonce.into(), aad, &mut buf).unwrap();\n   c. assert_eq!(buf, expected_ct); assert_eq!(tag.as_slice(), expected_tag);\n4. For invalid cases (result=='invalid'):\n   a. let mut buf = ct.to_vec();\n   b. assert!(cipher.decrypt_in_place_detached(nonce.into(), aad, &mut buf, tag.into()).is_err());\n5. Skip/document AES-192-GCM and AES-192-CCM with #[ignore] and a comment explaining the gap.\n6. Nonce size filtering: GCM uses 12-byte nonce (filter ivSize==96); CCM may vary.\n7. Compile-time check: fn _aead<A: aead::AeadInPlace>() {} for each type.\n\n## Defensive rules\n- Filter out Wycheproof groups with unsupported nonce/tag sizes rather than panicking; log skipped group counts\n- Never test using decrypt-then-check-ciphertext (always use the AEAD tag)\n- On invalid cases, ensure buffer is zeroed or discarded after failed decrypt to prevent plaintext oracle\n- assert that nonce type is correct size at compile time (12 bytes for GCM)\n\n## Agent team\n- Agent R: inspect wycheproof aes_gcm_test.json schema (fields: key, iv, aad, msg, ct, tag, result, flags) and verify nonce field name is 'iv' not 'nonce'\n- Agent I: write test_aead.rs per algorithm above\n- Agent T: manually pick 2 Wycheproof GCM vectors and derive expected output independently; verify they appear in the JSON file\n\n## Tests (oracles)\n- Wycheproof testvectors_v1/aes_gcm_test.json (all valid+invalid cases with 128-bit tag, 96-bit nonce)\n- Wycheproof testvectors_v1/chacha20_poly1305_test.json\n- Missing Aes192Gcm documented with #[ignore] annotation",
+  "status": "closed",
+  "priority": 2,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:03Z",
+  "updated_at": "2026-04-30T00:54:04Z",
+  "closed_at": "2026-04-30T00:54:04Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:03Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:58:58Z"
+    }
+  ]
+}

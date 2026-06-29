@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.7",
+  "title": "test_kem.rs: ML-KEM-512/768/1024 via kem traits (PR #10305)",
+  "description": "Write tests/test_kem.rs: test ML-KEM-512/768/1024 encapsulation/decapsulation against NIST FIPS 203 ACVP deterministic vectors.\n\n## What\nVerify that ML-KEM kem trait wrappers (PR #10305) produce byte-exact shared secrets and ciphertexts matching NIST ACVP vectors.\n\n## Design decision\nkem::Encapsulate takes an opaque RNG, but NIST KAT requires deterministic encapsulation from a fixed seed.\nResolution: use the wolfCrypt C API wc_MlKemKey_Encapsulate directly (with a deterministic seed) to perform KAT testing, rather than the kem trait path.\nThe kem trait path is still exercised by a round-trip test (encapsulate+decapsulate agree) to prove the glue code is wired correctly.\nThis is documented in a comment at the top of the file explaining why direct C API usage is necessary here.\n\n## Algorithm\n1. Parse ACVP JSON from external/wychcheck/testvectors_acvp/ML-KEM-encapDecap-FIPS203/ (one JSON file per parameter set).\n2. For ML-KEM-512, ML-KEM-768, ML-KEM-1024:\n   a. keyGen KAT: feed 'd' and 'z' seeds to wc_MlKemKey_MakeKey; compare resulting ek (encapsulation key) and dk (decapsulation key) bytes against ACVP expected.\n   b. encapDecap KAT: feed ek and m (encapsulation randomness) to wc_MlKemKey_Encapsulate; compare c (ciphertext) and k (shared secret) against ACVP expected.\n   c. decap verification: feed dk and c to wc_MlKemKey_Decapsulate; compare k against ACVP expected.\n3. kem trait round-trip (not a KAT \u2014 proves glue wiring):\n   a. use kem::Encapsulate; let (ct, ss_enc) = mlkem512_key.encapsulate(&mut rng).unwrap();\n   b. use kem::Decapsulate; let ss_dec = mlkem512_key.decapsulate(&ct).unwrap();\n   c. assert_eq!(ss_enc, ss_dec);\n   d. Add comment: 'This is a round-trip test only; byte-exact correctness is covered by the ACVP KAT tests above.'\n4. Compile-time check: fn _kem<K: kem::Encapsulate<_,_>>() {} for each ML-KEM type.\n\n## Defensive rules\n- Document at file top that direct C API usage is intentional and restricted to test_kem.rs only\n- All C FFI calls in test_kem.rs must use unsafe blocks with a comment explaining why each is safe\n- Never print shared secret bytes in test failure messages (key material discipline)\n- If external/wychcheck does not exist (setup.sh not run), panic with clear message\n\n## Agent team\n- Agent R: read mlkem.rs and mlkem_kem.rs (PR #10305) to find exact type names; find wc_MlKemKey_Encapsulate in wolfssl sys bindings; inspect ACVP JSON schema in wychcheck\n- Agent I: write test_kem.rs per algorithm above\n- Agent T: parse one ACVP ML-KEM-512 vector independently and verify it appears in the JSON file\n\n## Tests (oracles)\n- NIST FIPS 203 ACVP vectors from external/wychcheck/testvectors_acvp/ML-KEM-encapDecap-FIPS203/\n- NIST FIPS 203 ACVP vectors from external/wychcheck/testvectors_acvp/ML-KEM-keyGen-FIPS203/\n- PR #10305 round-trip gap explicitly documented in comments",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:05Z",
+  "updated_at": "2026-04-30T00:54:17Z",
+  "closed_at": "2026-04-30T00:54:17Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:05Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:00Z"
+    }
+  ]
+}

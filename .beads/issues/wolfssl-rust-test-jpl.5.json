@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.5",
+  "title": "test_mac.rs: HMAC and CMAC via digest::Mac (PR #10305)",
+  "description": "Write tests/test_mac.rs: test digest::Mac impls for CMAC (AES-128/192/256) and HMAC (all SHA variants) against NIST SP 800-38B and Wycheproof JSON.\n\n## What\nVerify MAC trait impls (PR #10305) produce byte-exact output and reject wrong tags, using full coverage across key sizes and message lengths that the PR itself omits.\n\n## Algorithm\n1. CMAC tests (from testvectors/nist/cmac_38b.rs):\n   a. For each key_size in [128, 192, 256] and each of 4 message lengths (0, 16, 40, 64 bytes):\n   b. use digest::Mac; let mut mac = CmacAes128::new_from_slice(key).unwrap();\n   c. Mac::update(&mut mac, msg); let tag = mac.finalize_fixed();\n   d. assert_eq!(tag.as_slice(), expected, 'CMAC AES-{} Mlen={} failed');\n   e. Negative: CmacAes128::new_from_slice(key).unwrap().verify_slice(msg, &wrong_tag) returns Err.\n2. HMAC tests (from Wycheproof JSON):\n   For each variant in [sha1, sha224, sha256, sha384, sha512, sha512_224, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512]:\n   a. load external/wycheproof/testvectors_v1/hmac_{variant}_test.json\n   b. For each valid case: HmacSha256::new_from_slice(key).unwrap().chain_update(msg).finalize_fixed() == expected_tag\n   c. For each invalid case: verify_slice returns Err\n3. Compile-time checks: fn _mac<M: digest::Mac>() {} for Cmac* and Hmac* types.\n\n## Defensive rules\n- If a Wycheproof file does not exist (setup.sh not run), panic with a clear message pointing to setup.sh \u2014 do not silently skip\n- CMAC AES-192 and AES-256: if these types do not exist in PR #10305, document with compile_fail; do not skip silently\n- Key material (HMAC key) must never appear in assert_eq! failure message (use assert_mac_eq! helper from common.rs that redacts key)\n\n## Agent team\n- Agent R: read PR #10305 cmac_mac.rs and hmac_mac.rs to confirm exact type names (CmacAes128? Cmac<Aes128>?) and feature flags\n- Agent I: write test_mac.rs per algorithm above\n- Agent T: independently transcribe NIST SP 800-38B D.1 Example 1 (AES-128, 0-byte msg, key=2b7e..., tag=bb1d6929e95937287fa37d129b756746); verify vs cmac_38b.rs constant\n\n## Tests (oracles)\n- CMAC AES-128 Mlen=0: oracle = NIST SP 800-38B D.1 Ex.1 = bb1d6929e95937287fa37d129b756746\n- CMAC AES-128 Mlen=16: oracle = NIST SP 800-38B D.1 Ex.2 = 070a16b46b4d4144f79bdd9dd04a287c\n- CMAC AES-192 all 4 lengths: oracle = NIST SP 800-38B D.2 (NOT tested in PR #10305)\n- HMAC-SHA-256: Wycheproof hmac_sha256_test.json (superset of RFC 4231; PR only tests 3 of ~100 cases)",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:04Z",
+  "updated_at": "2026-04-30T00:54:14Z",
+  "closed_at": "2026-04-30T00:54:14Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:03Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:58:59Z"
+    }
+  ]
+}

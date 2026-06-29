@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.3",
+  "title": "test_cipher.rs: AES ECB/CBC/CTR/OFB via cipher traits",
+  "description": "Write tests/test_cipher.rs: test cipher::* impls for AES ECB/CBC/CTR/OFB against NIST SP 800-38A Appendix F vectors.\n\n## What\nVerify that AES cipher type parameters (KeySize, IvSize, BlockSize) are correct and encrypt/decrypt output is byte-exact NIST.\n\n## Algorithm\n1. Load vectors from testvectors/nist/aes_38a.rs (compiled-in constants).\n2. ECB (BlockEncrypt/Decrypt):\n   a. use cipher::{BlockEncrypt, KeyInit}; let cipher = Aes128Ecb::new_from_slice(key).unwrap();\n   b. let mut block = GenericArray::clone_from_slice(pt_block);\n   c. cipher.encrypt_block(&mut block); assert_eq!(block.as_slice(), ct_block);\n   d. Repeat for AES-192, AES-256. Repeat decrypt direction.\n3. CBC (BlockEncrypt + cbc::Encryptor):\n   a. use cipher::{KeyIvInit, BlockEncryptMut}; let enc = CbcEncryptor::new_from_slices(key, iv).unwrap();\n   b. encrypt 4 blocks; assert byte-exact against NIST F.2.\n4. CTR (StreamCipher):\n   a. use cipher::{KeyIvInit, StreamCipher}; let mut ctr = Aes128Ctr::new_from_slices(key, iv).unwrap();\n   b. apply_keystream on plaintext copy; assert_eq against NIST F.5.\n5. OFB (StreamCipher):\n   a. Same pattern as CTR using Aes128Ofb; NIST F.4 vectors.\n6. Compile-time trait check: fn _block_enc<C: cipher::BlockEncrypt>() {} for ECB types.\n\n## Defensive rules\n- Use GenericArray::clone_from_slice (not unsafe pointer casts) for block construction\n- Assert block size at compile time via cipher::BlockSizeUser::BlockSize == U16\n- Never use the wolfssl-wolfcrypt AES C FFI directly; always go through the cipher trait\n- If cfg flag aes_cbc/aes_ctr/aes_ofb is not emitted by build.rs, tests for those modes will fail to compile; document in #[cfg_attr] comments\n\n## Agent team\n- Agent R: read aes.rs to confirm type names for each mode and which cfg flags gate them; read build.rs to understand how cfg flags are emitted\n- Agent I: write test_cipher.rs per algorithm above\n- Agent T: independently transcribe NIST SP 800-38A F.1.1 (AES-128 ECB encrypt, first block) from the NIST PDF; confirm it matches the aes_38a.rs constant\n\n## Tests (oracles)\n- AES-128-ECB F.1.1: key=2b7e151628aed2a6abf7158809cf4f3c, pt=6bc1bee22e409f96e93d7e117393172a, ct=3ad77bb40d7a3660a89ecaf32466ef97\n- AES-128-CBC F.2.1: iv=000102030405060708090a0b0c0d0e0f, first block ct=7649abac8119b246cee98e9b12e9197d\n- AES-128-CTR F.5.1: derived from SP 800-38A Appendix F",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:02Z",
+  "updated_at": "2026-04-30T00:54:03Z",
+  "closed_at": "2026-04-30T00:54:03Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:02Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:58:58Z"
+    }
+  ]
+}

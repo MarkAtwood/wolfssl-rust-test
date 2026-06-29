@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.9",
+  "title": "test_rand_core.rs: RNG via rand_core::TryCryptoRng",
+  "description": "Write tests/test_rand_core.rs: test rand_core::TryCryptoRng impl for wolfCrypt RNG.\n\n## What\nVerify the RNG trait impl compiles, fills buffers successfully, and produces non-trivially-constant output.\n\n## Algorithm\n1. Trait bound proof at compile time:\n   fn _assert_try_crypto_rng<R: rand_core::TryCryptoRng>() {}\n   fn _check() { _assert_try_crypto_rng::<wolfssl_wolfcrypt::random::Rng>(); }\n2. try_fill_bytes basic test:\n   let mut rng = Rng::new().expect('RNG init failed');\n   let mut buf = [0u8; 32];\n   rng.try_fill_bytes(&mut buf).expect('fill failed');\n   assert_ne!(buf, [0u8; 32], 'RNG returned all zeros');\n3. Successive calls diverge (probabilistic):\n   let mut buf1 = [0u8; 32]; let mut buf2 = [0u8; 32];\n   rng.try_fill_bytes(&mut buf1).unwrap(); rng.try_fill_bytes(&mut buf2).unwrap();\n   assert_ne!(buf1, buf2, 'RNG produced identical successive outputs');\n4. PrimInt / generate_block (if exposed by PR #10305):\n   Call generate_block::<u8>(), generate_block::<u16>(), generate_block::<u32>(), generate_block::<u64>() and assert Ok.\n5. Zero-length fill: rng.try_fill_bytes(&mut []) should return Ok (no crash).\n\n## Defensive rules\n- Do not assert any specific byte values from the RNG (DRBG output is not deterministic)\n- Probabilistic assertions (buf1 != buf2) have a negligible false-failure rate at 32 bytes; this is acceptable\n- Call wolfcrypt_init() before creating any Rng instance\n- RNG must be properly cleaned up (Rng type must implement Drop wrapping wc_FreeRng)\n\n## Agent team\n- Agent R: read random.rs to confirm exact struct name (Rng? WolfRng?) and which methods are implemented; check if generate_block is added by PR #10305\n- Agent I: write test_rand_core.rs per algorithm above\n- Agent T: independently verify that rand_core::TryCryptoRng is the current trait name (not RngCore) by checking the rand_core 0.10 changelog\n\n## Tests (oracles)\n- No external vector oracle appropriate for DRBG output; tests verify: trait implementation, non-zero output, successive-call divergence, edge cases\n- rand_core 0.10 trait hierarchy confirmed from crate documentation (TryCryptoRng = infallible try-fill)",
+  "status": "closed",
+  "priority": 3,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:06Z",
+  "updated_at": "2026-04-30T00:54:05Z",
+  "closed_at": "2026-04-30T00:54:05Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:06Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:58:59Z"
+    }
+  ]
+}

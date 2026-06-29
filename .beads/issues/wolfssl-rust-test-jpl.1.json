@@ -1,0 +1,21 @@
+{
+  "id": "wolfssl-rust-test-jpl.1",
+  "title": "Infrastructure: setup.sh, Cargo.toml, build.rs, .gitignore",
+  "description": "Create the test crate skeleton: Cargo.toml, build.rs, setup.sh, .gitignore, testvectors/nist/ inline hex files, and tests/common.rs.\n\n## What\nOne-time infrastructure bead that must land before any test file can compile.\n\n## Algorithm\n1. Write Cargo.toml: name=wolfssl-rust-test, edition=2021, wolfssl-wolfcrypt path dep on ../wolfssl/wrapper/rust/wolfssl-wolfcrypt with features [rand_core,aead,cipher,digest,signature,mac,kem,password-hash]; deps: hex=0.4, serde_json=1; dev-deps: aead={version=0.5,features=[dev]}, digest={version=0.11,features=[dev,mac]}, cipher=0.5.\n2. Write setup.sh (chmod +x): set -euo pipefail; idempotent: skip if dir already exists; clone --depth 1 https://github.com/wolfSSL/wychcheck external/wychcheck; clone --depth 1 https://github.com/google/wycheproof external/wycheproof. Record the actual HEAD commit of each clone to audit/vector_commits.txt for reproducibility.\n3. Write .gitignore: /external/  /target/\n4. Write testvectors/nist/aes_38a.rs: pub const structs/arrays of hex!() literals from NIST SP 800-38A Appendix F. Cover ECB/CBC/CTR/OFB, key sizes 128/192/256, encrypt+decrypt directions (24 vector sets, ~4 block pairs each).\n5. Write testvectors/nist/cmac_38b.rs: pub const arrays from NIST SP 800-38B Appendix D.1-D.3. Cover AES-128/192/256, 4 message lengths each (12 vectors total).\n6. Write testvectors/nist/sha_inline.rs: 1-2 NIST FIPS 180-4/202 example pairs per algorithm (SHA-1/224/256/384/512, SHA3-224/256/384/512, SHAKE128/256).\n7. Write tests/common.rs: wolfcrypt_init()/wolfcrypt_cleanup() call wrappers (panic on error); load_wycheproof_json(path: &str) -> serde_json::Value helper; assert_at_boundary() for key material never appearing in format strings.\n8. Confirm  compiles (no test files yet).\n\n## Defensive rules\n- setup.sh: abort if external/ has unexpected content (not a git repo) rather than silently overwriting\n- setup.sh: record HEAD commit hash in audit/vector_commits.txt for reproducibility\n- Cargo.toml: no wildcard feature flags; list each feature explicitly\n- common.rs: wolfcrypt_init must be called before any test; add a once_cell or std::sync::Once guard so it is called exactly once per test binary\n- #![forbid(unsafe_code)] at crate root (all test code is safe Rust)\n- WOLFSSL_DIR must be set or cargo check will fail to link; document this in README snippet\n\n## Agent team\n- Agent R: read wolfssl-wolfcrypt/Cargo.toml to verify feature names; read build.rs to understand WOLFSSL_DIR env var\n- Agent I: write all files per algorithm above\n- Agent T: run cargo check to confirm compilation; run setup.sh --dry-run; inspect testvectors/ for completeness\n\n## Tests\n- cargo check with no test files passes\n- setup.sh idempotency: run twice, second run produces no errors and no duplicate dirs\n- aes_38a.rs hex literals parse without panic (no typos)\n- cmac_38b.rs hex literals parse without panic",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "assignee": "Mark Atwood",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:01Z",
+  "updated_at": "2026-04-30T00:13:55Z",
+  "closed_at": "2026-04-30T00:13:55Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:01Z"
+    }
+  ]
+}

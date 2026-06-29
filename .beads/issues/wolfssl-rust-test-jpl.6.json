@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.6",
+  "title": "test_signature.rs: ECDSA, Ed25519, Ed448, RSA via signature traits (PR #10248)",
+  "description": "Write tests/test_signature.rs: test signature::Signer/Verifier impls for ECDSA P-256/384/521, Ed25519, Ed448, RSA PKCS#1v1.5 against Wycheproof + RFC 8032 vectors.\n\n## What\nVerify that signature trait impls (PR #10248) accept valid signatures and reject invalid ones using external test vectors.\n\n## Algorithm\n1. ECDSA (verify path from Wycheproof):\n   a. For each curve in [secp256r1, secp384r1, secp521r1]:\n      - load external/wycheproof/testvectors_v1/ecdsa_{curve}_sha{n}_test.json (or p1363 variant)\n      - For each valid case: parse public key from DER, use signature::Verifier::verify(pk, msg_hash, sig) \u2192 assert Ok\n      - For each invalid case: verify() \u2192 assert Err\n   b. For signing path: generate a key pair using wolfcrypt API, sign a test message, verify the resulting signature with Verifier \u2014 two independent code paths.\n2. Ed25519:\n   a. Load external/wychcheck/testvectors_rfc/rfc8032_eddsa_test.json\n   b. For each test vector: use Signer to sign msg with private key sk \u2192 assert sig == expected\n   c. Use Verifier to verify sig with public key pk \u2192 assert Ok\n3. Ed448: same as Ed25519 but from rfc8032 Ed448 section.\n4. RSA PKCS#1v1.5 (verify only):\n   a. Load external/wycheproof/testvectors_v1/rsa_signature_2048_sha256_test.json\n   b. For each valid: parse public key, Verifier::verify(pk, msg, sig) \u2192 assert Ok\n   c. For each invalid: verify() \u2192 assert Err\n5. Compile-time check: fn _signer<S: signature::Signer<SomeType>>() {} for ECDSA/Ed types.\n\n## Defensive rules\n- Never use the wolfcrypt C ECC/RSA API directly in tests; always go through signature trait\n- Public key parsing: DER format; use type specified in PR #10248 (check exact key type names)\n- Signature format: ECDSA P1363 vs DER \u2014 must match what Wycheproof JSON uses (check 'schema' field in JSON)\n- If PR #10248 is absent from local tree, this file will not compile; this is expected and documents the dependency\n\n## Agent team\n- Agent R: read PR #10248 ecdsa.rs and rsa_pkcs1v15.rs to determine exact key and signature types; determine whether ECDSA uses DER or P1363 encoding; read wycheproof JSON schema field\n- Agent I: write test_signature.rs per algorithm above\n- Agent T: independently verify one Wycheproof ECDSA P-256 vector using OpenSSL CLI: openssl dgst -sha256 -verify pub.pem -signature sig.bin msg.bin\n\n## Tests (oracles)\n- ECDSA P-256: Wycheproof ecdsa_secp256r1_sha256_test.json (valid+invalid)\n- ECDSA P-384: Wycheproof ecdsa_secp384r1_sha384_p1363_test.json\n- Ed25519: RFC 8032 test vectors via wychcheck/testvectors_rfc/rfc8032_eddsa_test.json\n- RSA-2048-SHA-256: Wycheproof rsa_signature_2048_sha256_test.json",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:04Z",
+  "updated_at": "2026-04-30T00:54:15Z",
+  "closed_at": "2026-04-30T00:54:15Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:04Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:00Z"
+    }
+  ]
+}

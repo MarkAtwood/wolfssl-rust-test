@@ -1,0 +1,68 @@
+{
+  "id": "wolfssl-rust-test-jpl.10",
+  "title": "test_api_gaps.rs: documented API issues (compile_fail + runtime)",
+  "description": "Write tests/test_api_gaps.rs: document all API issues from PR #10248 and #10305 review as compile_fail doc-tests and runtime assertions.\n\n## What\nCreate a permanent, executable registry of API breaking changes, missing types, and logic bugs found during the PR review.\n\n## Algorithm\n1. LMS sigs_left() rename (PR #10305, lms.rs):\n   - Add a compile_fail doc-test: ///  with comment: 'sigs_left() was renamed to has_sigs_left() in PR #10305; no deprecation shim; see wolfssl/wolfssl#10305'\n2. mlkem encode_public_key return type (PR #10305, mlkem.rs):\n   - compile_fail doc-test: code that expects usize from encode_public_key(); comment: 'return type changed from Result<usize,i32> to Result<(),i32> in PR #10305, breaking change'\n3. Missing Aes192Gcm and Aes192Ccm:\n   - compile_fail doc-test: 'use wolfssl_wolfcrypt::aes::Aes192Gcm;' with comment: 'AES-192-GCM is missing; only 128 and 256 bit key sizes are implemented'\n4. CMAC/HMAC Mac not Clone or Reset:\n   - compile_fail doc-test: code calling .clone() on a CmacAes128 instance; comment: 'digest::Mac implementors should ideally implement Clone+Reset for stateful use; PR #10305 does not'\n5. ecc::ECC::verify result fix (PR #10305 bug fix: res != 0 \u2192 res == 1):\n   - Runtime test using a known-valid ECDSA P-256 signature from Wycheproof and a known-invalid (bit-flipped) signature\n   - Verify valid returns Ok(true), invalid returns Ok(false) or Err (not Ok(true) with wrong logic)\n   - Comment: 'This test guards against regression to the pre-PR-#10305 bug where any non-zero rc was treated as success'\n\n## Defensive rules\n- Each gap entry must have: (a) the PR number that introduced or fixes it, (b) the file and line in wolfssl-wolfcrypt where the issue occurs, (c) the user impact (compile break? silent wrong answer? missing functionality?)\n- compile_fail tests must include the exact error message expected in the comment so future readers know what to look for\n- This file must compile successfully even when PR #10248 and #10305 are absent (use cfg-guarded or doc-test-only forms)\n- Add a module-level comment stating: 'This file is a living registry. When a gap is fixed in wolfssl-wolfcrypt, move the compile_fail test to a passing test.'\n\n## Agent team\n- Agent R: re-read PR #10305 diff for lms.rs, mlkem.rs, ecc.rs to confirm exact method/type names for gaps 1, 2, 5; re-read PR #10248 for aes.rs Aes192Gcm absence\n- Agent I: write test_api_gaps.rs per algorithm above\n- Agent T: verify each compile_fail test actually fails to compile (by temporarily removing the compile_fail attribute and confirming the error); verify the ecc verify runtime test has a real ECDSA vector, not a synthetic one\n\n## Tests (oracles)\n- ecc verify bug: Wycheproof ecdsa_secp256r1_sha256_test.json (one valid + one invalid vector)\n- All compile_fail expectations: Rust compiler errors from wolfssl-wolfcrypt crate",
+  "status": "closed",
+  "priority": 2,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:07Z",
+  "updated_at": "2026-04-30T01:07:47Z",
+  "closed_at": "2026-04-30T01:07:47Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:07Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.2",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:01Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.3",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:02Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.4",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:02Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.5",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:03Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.6",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:03Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.7",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:04Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.8",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:04Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.9",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:05Z"
+    }
+  ]
+}

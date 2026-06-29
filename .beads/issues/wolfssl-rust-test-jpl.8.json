@@ -1,0 +1,26 @@
+{
+  "id": "wolfssl-rust-test-jpl.8",
+  "title": "test_pbkdf2.rs: PBKDF2 via password-hash traits (PR #10305)",
+  "description": "Write tests/test_pbkdf2.rs: test password_hash::PasswordHasher PBKDF2 impl against Wycheproof JSON for HMAC-SHA-1/256/384/512.\n\n## What\nVerify PBKDF2 password-hash trait impl (PR #10305) computes byte-exact derived keys against Wycheproof vectors (superset of RFC 6070), demonstrating that the PR's round-trip-only tests are insufficient.\n\n## Algorithm\n1. For each variant in [hmacsha1, hmacsha256, hmacsha384, hmacsha512]:\n   a. load external/wycheproof/testvectors_v1/pbkdf2_{variant}_test.json\n   b. Parse: password (bytes), salt (bytes), iterations (u32), dkLen (usize), dk (expected bytes)\n   c. use password_hash::{PasswordHasher, SaltString, Algorithm, Params};\n   d. Construct Params with iter (c) and output length (dkLen)\n   e. Call pbkdf2_impl.hash_password_into(password, salt, &mut output_buf) -> assert Ok\n   f. assert_eq!(output_buf[..dkLen], expected_dk, 'PBKDF2-{} vector {} failed');\n2. Invalid cases (if any in Wycheproof with result=='invalid'): assert Err returned.\n3. Demonstrate the gap: add a comment before each test noting which cases are NOT in PR #10305's test suite (which only does round-trip: hash twice, compare).\n\n## Defensive rules\n- Password and derived key must never appear in test failure messages (key material discipline)\n- If dkLen exceeds what the impl supports, document with #[ignore] and a gap comment\n- If Wycheproof file missing (setup.sh not run), panic with clear message pointing to setup.sh\n- Iterations count in Wycheproof may be large; set a per-test timeout warning if iterations > 10000\n\n## Agent team\n- Agent R: read pbkdf2_password_hash.rs (PR #10305) to find exact type name and which SHA variants are exposed; check what Params fields are expected; read Wycheproof JSON schema\n- Agent I: write test_pbkdf2.rs per algorithm above\n- Agent T: independently compute PBKDF2-HMAC-SHA-1 of RFC 6070 \u00a72 test 1 (password='password', salt='salt', c=1, dkLen=20) using Python: hashlib.pbkdf2_hmac('sha1', b'password', b'salt', 1, 20).hex() = 0c60c80f961f0e71f3a9b524af6012062fe037a6\n\n## Tests (oracles)\n- Wycheproof pbkdf2_hmacsha1_test.json (superset of RFC 6070 \u00a72 vectors)\n- Wycheproof pbkdf2_hmacsha256_test.json\n- Wycheproof pbkdf2_hmacsha384_test.json\n- Wycheproof pbkdf2_hmacsha512_test.json\n- RFC 6070 \u00a72 Test Case 1: PBKDF2-HMAC-SHA1(password, salt, 1, 20) = 0c60c80f961f0e71f3a9b524af6012062fe037a6",
+  "status": "closed",
+  "priority": 1,
+  "issue_type": "task",
+  "created_by": "Mark Atwood",
+  "created_at": "2026-04-29T23:49:06Z",
+  "updated_at": "2026-04-30T00:54:18Z",
+  "closed_at": "2026-04-30T00:54:18Z",
+  "dependencies": [
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:49:05Z"
+    },
+    {
+      "depends_on_id": "wolfssl-rust-test-jpl.1",
+      "dep_type": "parent_child",
+      "created_by": "Mark Atwood",
+      "created_at": "2026-04-29T16:59:01Z"
+    }
+  ]
+}
